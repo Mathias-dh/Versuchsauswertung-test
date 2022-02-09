@@ -1,0 +1,131 @@
+---
+title: "Versuchsauswertung"
+output:
+  html_notebook: default
+--- 
+# Übersicht
+Das wird die automatisierte Auswertung von SCADA Exporten von Drier2.
+
+## Libararies
+```{r message=FALSE}
+library(tidyverse)
+library(readr)
+library(knitr)
+library(ggplot2)
+library(gganimate)
+library("xlsx")
+```
+
+## Daten
+Datengrundlage ist ein Export von Drier Parametern
+
+```{r message=FALSE, warning=FALSE}
+data <- read_delim("data.csv", ";", escape_double = FALSE,locale = locale(decimal_mark = ","), trim_ws = TRUE)
+
+data <- data %>% 
+  separate(col = `Zeit:`,into = c("Time",NA),sep = ".00")%>%
+  mutate(Time = as.POSIXct(Time, format = "%d.%m.%Y %H:%M:%S")) %>%
+  fill(everything(),.direction="down")
+
+write.xlsx(data, file = "output.xlsx",
+      sheetName = "output", append = FALSE)
+
+ggplot(data=data, aes(x=Time, y=SDP1_56_665FT.PV)) +
+  geom_line()
+
+
+
+
+
+
+
+
+
+  # mutate(inpro =if_else(data$`SDP1_56_666FT.PV`>0, TRUE, NA)) %>%
+  # filter(row_number() %% 100 == 1) %>%
+  # mutate(OrderStart = if_else(lag(is.na(inpro),1) & inpro, 1, 0)) %>% 
+  # mutate(zahler = if_else(inpro, cumsum(replace_na(OrderStart, 0)),0))
+  # 
+# 
+# data_longer <- data %>%
+#   pivot_longer(
+#     cols = starts_with("SDP1"),
+#     names_to = "Tag",
+#     values_to = "Value") %>%
+#   mutate(Sens_Row = case_when(
+#     Tag =="SDP1_03_511TT.PV" ~ 1,
+#     Tag =="SDP1_03_512TT.PV" ~ 1,
+#     Tag =="SDP1_03_513TT.PV" ~ 1,
+#     Tag =="SDP1_03_514TT.PV" ~ 1,
+#     Tag =="SDP1_03_515TT.PV" ~ 1,
+#     Tag =="SDP1_03_516TT.PV" ~ 1,
+#     Tag =="SDP1_03_517TT.PV" ~ 1,
+#     Tag =="SDP1_03_518TT.PV" ~ 1,
+#     Tag =="SDP1_03_521TT.PV" ~ 2,
+#     Tag =="SDP1_03_522TT.PV" ~ 2,
+#     Tag =="SDP1_03_523TT.PV" ~ 2,
+#     Tag =="SDP1_03_524TT.PV" ~ 2,
+#     Tag =="SDP1_03_525TT.PV" ~ 2,
+#     Tag =="SDP1_03_526TT.PV" ~ 2,
+#     Tag =="SDP1_03_527TT.PV" ~ 2,
+#     Tag =="SDP1_03_528TT.PV" ~ 2,
+#     Tag =="SDP1_03_531TT.PV" ~ 3,
+#     Tag =="SDP1_03_532TT.PV" ~ 3,
+#     Tag =="SDP1_03_533TT.PV" ~ 3,
+#     Tag =="SDP1_03_534TT.PV" ~ 3,
+#     Tag =="SDP1_03_535TT.PV" ~ 3,
+#     Tag =="SDP1_03_536TT.PV" ~ 3,
+#     Tag =="SDP1_03_537TT.PV" ~ 3,
+#     Tag =="SDP1_03_538TT.PV" ~ 3,
+#   ),
+#   Sens_Col = case_when(
+#     Tag =="SDP1_03_511TT.PV" ~ 1,
+#     Tag =="SDP1_03_512TT.PV" ~ 2,
+#     Tag =="SDP1_03_513TT.PV" ~ 3,
+#     Tag =="SDP1_03_514TT.PV" ~ 4,
+#     Tag =="SDP1_03_515TT.PV" ~ 5,
+#     Tag =="SDP1_03_516TT.PV" ~ 6,
+#     Tag =="SDP1_03_517TT.PV" ~ 7,
+#     Tag =="SDP1_03_518TT.PV" ~ 8,
+#     Tag =="SDP1_03_521TT.PV" ~ 1,
+#     Tag =="SDP1_03_522TT.PV" ~ 2,
+#     Tag =="SDP1_03_523TT.PV" ~ 3,
+#     Tag =="SDP1_03_524TT.PV" ~ 4,
+#     Tag =="SDP1_03_525TT.PV" ~ 5,
+#     Tag =="SDP1_03_526TT.PV" ~ 6,
+#     Tag =="SDP1_03_527TT.PV" ~ 7,
+#     Tag =="SDP1_03_528TT.PV" ~ 8,
+#     Tag =="SDP1_03_531TT.PV" ~ 1,
+#     Tag =="SDP1_03_532TT.PV" ~ 2,
+#     Tag =="SDP1_03_533TT.PV" ~ 3,
+#     Tag =="SDP1_03_534TT.PV" ~ 4,
+#     Tag =="SDP1_03_535TT.PV" ~ 5,
+#     Tag =="SDP1_03_536TT.PV" ~ 6,
+#     Tag =="SDP1_03_537TT.PV" ~ 7,
+#     Tag =="SDP1_03_538TT.PV" ~ 8,
+#   )) %>%
+#   filter(!is.na(Sens_Row)) %>% 
+#   filter(!is.na(zahler))
+# ```
+# 
+# ```{r message=FALSE, warning=FALSE}
+# graph1 = ggplot(data_longer, aes(x=Sens_Col, y=Sens_Row, fill=Value)) +
+#   geom_tile() +
+#   #facet_grid(data_longer$zahler) +
+#   scale_fill_gradient2(low = "green", high = "red",limit = c(min(data_longer$Value), max(data_longer$Value)))+ 
+#   transition_time(data_longer$Time) +
+#   labs(title = "{frame_time}")
+# 
+# animate(graph1, nframes=484,
+        renderer = gifski_renderer("test.gif"))
+
+#animate(graph1)
+# graph1.animation = graph1 +
+#   transition_time(row_number(data_longer$nr))
+# 
+# graph1.animation
+
+
+```
+
+
